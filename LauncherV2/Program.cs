@@ -20,7 +20,7 @@ class StarkFN
     {
         var files = new (string name, string url)[]
         {
-            ("Backend.dll", "https://raw.githubusercontent.com/Project-Stark-FN/upload/refs/heads/main/Cobalt.dll")
+            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Cobalt.dll")
         };
 
         using var client = new HttpClient();
