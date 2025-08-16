@@ -16,7 +16,7 @@ namespace Utilities
         public const uint MEM_COMMIT = 0x1000;
         public const uint MEM_RESERVE = 0x2000;
 
-        // WinAPI Funktionen
+        // WinAPI functions
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
@@ -45,32 +45,32 @@ namespace Utilities
 
             if (hProcess == IntPtr.Zero)
             {
-                throw new Exception("Fehler beim Öffnen des Prozesses.");
+                throw new Exception("Error opening the process.");
             }
 
             IntPtr loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
             if (loadLibraryAddr == IntPtr.Zero)
             {
-                throw new Exception("Konnte LoadLibraryA nicht finden.");
+                throw new Exception("Could not find LoadLibraryA.");
             }
 
             uint size = (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char)));
             IntPtr allocMemAddress = VirtualAllocEx(hProcess, IntPtr.Zero, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
             if (allocMemAddress == IntPtr.Zero)
             {
-                throw new Exception("Fehler beim Reservieren des Speichers.");
+                throw new Exception("Error reserving memory.");
             }
 
             bool result = WriteProcessMemory(hProcess, allocMemAddress, Encoding.Default.GetBytes(dllPath), size, out _);
             if (!result)
             {
-                throw new Exception("Fehler beim Schreiben des DLL-Pfades in den Prozess.");
+                throw new Exception("Error writing the DLL path into the process.");
             }
 
             IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
             if (hThread == IntPtr.Zero)
             {
-                throw new Exception("Fehler beim Erstellen des Remote Threads.");
+                throw new Exception("Error creating the remote thread.");
             }
         }
     }
