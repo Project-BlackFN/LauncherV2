@@ -96,6 +96,7 @@ class BlackFN
     {
         string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
         string backendDll = Path.Combine(AppDataPath, "Backend.dll");
+        string memoryDll = Path.Combine(AppDataPath, "memory.dll");
         if (!File.Exists(filePath))
         {
             Console.WriteLine("Settings not found! Please configure first.");
@@ -137,6 +138,8 @@ class BlackFN
             FakeAC.Start(fortnitePath, "FortniteLauncher.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "dsf");
             Console.WriteLine("Fortnite is starting...");
             Injector.Inject(process.Id, (backendDll));
+            Thread.Sleep(30000);
+            Injector.Inject(process.Id, (memoryDll));
         }
         catch (Exception e)
         {
