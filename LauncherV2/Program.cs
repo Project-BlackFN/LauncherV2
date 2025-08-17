@@ -124,12 +124,14 @@ class StarkFN
                 UseShellExecute = true
             };
             Process process = Process.Start(psi);
-            Console.WriteLine("Fortnite wird gestartet...");
+            Console.WriteLine("Fortnite is starting...");
             Injector.Inject(process.Id, backendDll);
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Fehler beim Starten von Fortnite: {e.Message}");
+            Console.WriteLine($"Error while Starting Fortnite: {e.Message}");
         }
+
+        StartMenu();
     }
 }
