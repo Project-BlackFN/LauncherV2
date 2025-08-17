@@ -20,7 +20,8 @@ class StarkFN
     {
         var files = new (string name, string url)[]
         {
-            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Cobalt.dll")
+            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll"),
+            ("memory.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/memory.dll")
         };
 
         using var client = new HttpClient();
@@ -96,6 +97,7 @@ class StarkFN
     {
         string filePath = Path.Combine(AppDataPath, "starkfn.txt");
         string backendDll = Path.Combine(AppDataPath, "Backend.dll");
+        string memoryLeakDll = Path.Combine(AppDataPath, "memory.dll");
         if (!File.Exists(filePath))
         {
             Console.WriteLine("Settings not found! Please configure first.");
@@ -120,18 +122,19 @@ class StarkFN
         {
             ProcessStartInfo psi = new ProcessStartInfo(exePath)
             {
-                Arguments = $"-log -epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -skippatchcheck -nobe -fromfl=eac -AUTH_TYPE=epic -AUTH_LOGIN={email} -AUTH_PASSWORD={password} -fltoken=3db3ba5dcbd2e16703f3978d -caldera=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYmU5ZGE1YzJmYmVhNDQwN2IyZjQwZWJhYWQ4NTlhZDQiLCJnZW5lcmF0ZWQiOjE2Mzg3MTcyNzgsImNhbGRlcmFHdWlkIjoiMzgxMGI4NjMtMmE2NS00NDU3LTliNTgtNGRhYjNiNDgyYTg2IiwiYWNQcm92aWRlciI6IkVhc3lBbnRpQ2hlYXQiLCJub3RlcyI6IiIsImZhbGxiYWNrIjpmYWxzZX0.VAWQB67RTxhiWOxx7DBjnzDnXyyEnX7OljJm-j2d88G_WgwQ9wrE6lwMEHZHjBd1ISJdUO1UVUqkfLdU5nofBQ",
+                Arguments = $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -skippatchcheck -nobe -fromfl=eac -AUTH_TYPE=epic -AUTH_LOGIN={email} -AUTH_PASSWORD={password} -fltoken=3db3ba5dcbd2e16703f3978d -caldera=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYmU5ZGE1YzJmYmVhNDQwN2IyZjQwZWJhYWQ4NTlhZDQiLCJnZW5lcmF0ZWQiOjE2Mzg3MTcyNzgsImNhbGRlcmFHdWlkIjoiMzgxMGI4NjMtMmE2NS00NDU3LTliNTgtNGRhYjNiNDgyYTg2IiwiYWNQcm92aWRlciI6IkVhc3lBbnRpQ2hlYXQiLCJub3RlcyI6IiIsImZhbGxiYWNrIjpmYWxzZX0.VAWQB67RTxhiWOxx7DBjnzDnXyyEnX7OljJm-j2d88G_WgwQ9wrE6lwMEHZHjBd1ISJdUO1UVUqkfLdU5nofBQ",
                 UseShellExecute = true
             };
             Process process = Process.Start(psi);
+            FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_BE.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "r");
+            FakeAC.Start(fortnitePath, "FortniteLauncher.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "dsf");
             Console.WriteLine("Fortnite is starting...");
-            Injector.Inject(process.Id, backendDll);
+            Injector.Inject(process.Id, (backendDll));
         }
         catch (Exception e)
         {
             Console.WriteLine($"Error while Starting Fortnite: {e.Message}");
         }
-
         StartMenu();
     }
 }
