@@ -29,13 +29,11 @@ public class FakeAC
 
                     if (FNAntiCheatProcess.Id == 0)
                     {
-                        Console.WriteLine("[red]FAILED TO START[/]");
+
                     }
                     else
                     {
-                        Console.WriteLine("[green]SUCCESSFULLY STARTED[/]");
                         Freezeproc(FNAntiCheatProcess);
-                        Console.WriteLine("[green]SUCCESSFULLY FROZEN[/]");
                     }
                 }
                 else
@@ -44,13 +42,11 @@ public class FakeAC
 
                     if (FNLauncherProcess.Id == 0)
                     {
-                        Console.WriteLine("[red]FAILED TO START[/]");
+
                     }
                     else
                     {
-                        Console.WriteLine("[green]SUCCESSFULLY STARTED[/]");
                         Freezeproc(FNLauncherProcess);
-                        Console.WriteLine("[green]SUCCESSFULLY FROZEN[/]");
                     }
                 }
             }

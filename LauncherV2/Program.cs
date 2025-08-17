@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Utilities;
 
-class StarkFN
+class BlackFN
 {
-    static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StarkFN");
+    static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BlackFN");
 
     static async Task Main()
     {
@@ -20,8 +20,7 @@ class StarkFN
     {
         var files = new (string name, string url)[]
         {
-            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll"),
-            ("memory.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/memory.dll")
+            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll")
         };
 
         using var client = new HttpClient();
@@ -63,7 +62,7 @@ class StarkFN
     static void Settings()
     {
         Directory.CreateDirectory(AppDataPath);
-        string filePath = Path.Combine(AppDataPath, "starkfn.txt");
+        string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
         if (File.Exists(filePath)) File.Delete(filePath);
 
         string email;
@@ -95,9 +94,8 @@ class StarkFN
 
     static void StartFortnite()
     {
-        string filePath = Path.Combine(AppDataPath, "starkfn.txt");
+        string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
         string backendDll = Path.Combine(AppDataPath, "Backend.dll");
-        string memoryLeakDll = Path.Combine(AppDataPath, "memory.dll");
         if (!File.Exists(filePath))
         {
             Console.WriteLine("Settings not found! Please configure first.");
@@ -127,6 +125,7 @@ class StarkFN
             };
             Process process = Process.Start(psi);
             FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_BE.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "r");
+            FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_EAC.exe");
             FakeAC.Start(fortnitePath, "FortniteLauncher.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "dsf");
             Console.WriteLine("Fortnite is starting...");
             Injector.Inject(process.Id, (backendDll));
