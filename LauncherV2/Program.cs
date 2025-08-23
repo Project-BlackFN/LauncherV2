@@ -2,142 +2,173 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilities;
 
-class BlackFN
+namespace BlackFNLauncher
 {
-    static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BlackFN");
-
-    static async Task Main()
+    class BlackFN
     {
-        Directory.CreateDirectory(AppDataPath);
-        await DownloadFiles();
-        StartMenu();
-    }
+        static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BlackFN");
 
-    static async Task DownloadFiles()
-    {
-        var files = new (string name, string url)[]
+        static async Task Main()
         {
-            ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll"),
-            ("memory.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/memory.dll")
-        };
+            Directory.CreateDirectory(AppDataPath);
+            await DownloadFiles();
+            StartMenu();
+        }
 
-        using var client = new HttpClient();
-        foreach (var file in files)
+        static async Task DownloadFiles()
         {
-            string localPath = Path.Combine(AppDataPath, file.name);
-            if (File.Exists(localPath)) File.Delete(localPath);
+            var files = new (string name, string url)[]
+            {
+                ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll"),
+                ("memory.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/memory.dll")
+            };
+
+            using var client = new HttpClient();
+            foreach (var file in files)
+            {
+                string localPath = Path.Combine(AppDataPath, file.name);
+                if (File.Exists(localPath)) File.Delete(localPath);
+
+                try
+                {
+                    var bytes = await client.GetByteArrayAsync(file.url);
+                    await File.WriteAllBytesAsync(localPath, bytes);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Download failed for: {file.name}: {e.Message}");
+                }
+            }
+        }
+
+        static void StartMenu()
+        {
+            Console.WriteLine("-----------------------------");
+            Console.WriteLine("-> 1 - Settings");
+            Console.WriteLine("-> 2 - Start Fortnite");
+            Console.WriteLine("-----------------------------");
+            Console.Write("What is your Choice: ");
+            string option = Console.ReadLine();
+
+            if (option == "1") Settings();
+            else if (option == "2") StartFortnite();
+            else
+            {
+                Console.WriteLine("Please enter a valid number");
+                StartMenu();
+            }
+        }
+
+        static void Settings()
+        {
+            Directory.CreateDirectory(AppDataPath);
+            string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
+            if (File.Exists(filePath)) File.Delete(filePath);
+
+            string email;
+            while (true)
+            {
+                Console.Write("Enter your E-Mail: ");
+                email = Console.ReadLine();
+                if (email.Contains("@")) break;
+                Console.WriteLine("Invalid E-Mail.");
+            }
+
+            Console.Write("Enter your Password: ");
+            string password = Console.ReadLine();
+
+            string fortnitePath;
+            while (true)
+            {
+                Console.Write("Enter the File Path of Fortnite: ");
+                fortnitePath = Console.ReadLine();
+                string expectedFile = Path.Combine(fortnitePath, "FortniteGame", "Binaries", "Win64", "FortniteClient-Win64-Shipping.exe");
+                if (File.Exists(expectedFile)) break;
+                Console.WriteLine($"Error: File not found at {expectedFile}");
+            }
+
+            File.WriteAllLines(filePath, new[] { email, password, fortnitePath });
+            Console.WriteLine("Saved!");
+            StartMenu();
+        }
+
+        static void StartFortnite()
+        {
+            string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
+            string backendDll = Path.Combine(AppDataPath, "Backend.dll");
+            string memoryDll = Path.Combine(AppDataPath, "memory.dll");
+
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Settings not found! Please configure first.");
+                StartMenu();
+                return;
+            }
+
+            var lines = File.ReadAllLines(filePath);
+            string email = lines[0];
+            string password = lines[1];
+            string fortnitePath = lines[2];
+
+            string exePath = Path.Combine(fortnitePath, "FortniteGame", "Binaries", "Win64", "FortniteClient-Win64-Shipping.exe");
+            if (!File.Exists(exePath))
+            {
+                Console.WriteLine($"Error: Fortnite executable not found at {exePath}");
+                StartMenu();
+                return;
+            }
 
             try
             {
-                var bytes = await client.GetByteArrayAsync(file.url);
-                await File.WriteAllBytesAsync(localPath, bytes);
+                ProcessStartInfo psi = new ProcessStartInfo(exePath)
+                {
+                    Arguments = $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -skippatchcheck -nobe -fromfl=eac -AUTH_TYPE=epic -AUTH_LOGIN={email} -AUTH_PASSWORD={password} -fltoken=3db3ba5dcbd2e16703f3978d -caldera=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYmU5ZGE1YzJmYmVhNDQwN2IyZjQwZWJhYWQ4NTlhZDQiLCJnZW5lcmF0ZWQiOjE2Mzg3MTcyNzgsImNhbGRlcmFHdWlkIjoiMzgxMGI4NjMtMmE2NS00NDU3LTliNTgtNGRhYjNiNDgyYTg2IiwiYWNQcm92aWRlciI6IkVhc3lBbnRpQ2hlYXQiLCJub3RlcyI6IiIsImZhbGxiYWNrIjpmYWxzZX0.VAWQB67RTxhiWOxx7DBjnzDnXyyEnX7OljJm-j2d88G_WgwQ9wrE6lwMEHZHjBd1ISJdUO1UVUqkfLdU5nofBQ",
+                    UseShellExecute = true
+                };
+                Process process = Process.Start(psi);
+
+                FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_BE.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "r");
+                FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_EAC.exe");
+                FakeAC.Start(fortnitePath, "FortniteLauncher.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "dsf");
+
+                Console.WriteLine("Fortnite is starting...");
+
+                Injector.Inject(process.Id, backendDll);
+                WaitForFortniteWindow();
+                Thread.Sleep(10000);
+                Injector.Inject(process.Id, memoryDll);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Download fehlgeschlagen für {file.name}: {e.Message}");
+                Console.WriteLine($"Error while Starting Fortnite: {e.Message}");
+            }
+
+            StartMenu();
+        }
+
+        static void WaitForFortniteWindow()
+        {
+            while (true)
+            {
+                Process[] processes = Process.GetProcessesByName("FortniteClient-Win64-Shipping");
+
+                foreach (Process proc in processes)
+                {
+                    if (proc.MainWindowHandle != IntPtr.Zero && !string.IsNullOrEmpty(proc.MainWindowTitle))
+                    {
+                        if (proc.MainWindowTitle.Contains("Fortnite"))
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                Thread.Sleep(1000);
             }
         }
-    }
-
-    static void StartMenu()
-    {
-        Console.WriteLine("-----------------------------");
-        Console.WriteLine("-> 1 - Settings");
-        Console.WriteLine("-> 2 - Start Fortnite");
-        Console.WriteLine("-----------------------------");
-        Console.Write("What is your Choice: ");
-        string option = Console.ReadLine();
-
-        if (option == "1") Settings();
-        else if (option == "2") StartFortnite();
-        else
-        {
-            Console.WriteLine("Please enter a valid number");
-            StartMenu();
-        }
-    }
-
-    static void Settings()
-    {
-        Directory.CreateDirectory(AppDataPath);
-        string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
-        if (File.Exists(filePath)) File.Delete(filePath);
-
-        string email;
-        while (true)
-        {
-            Console.Write("Enter your E-Mail: ");
-            email = Console.ReadLine();
-            if (email.Contains("@")) break;
-            Console.WriteLine("Invalid E-Mail.");
-        }
-
-        Console.Write("Enter your Password: ");
-        string password = Console.ReadLine();
-
-        string fortnitePath;
-        while (true)
-        {
-            Console.Write("Enter the File Path of Fortnite: ");
-            fortnitePath = Console.ReadLine();
-            string expectedFile = Path.Combine(fortnitePath, "FortniteGame", "Binaries", "Win64", "FortniteClient-Win64-Shipping.exe");
-            if (File.Exists(expectedFile)) break;
-            Console.WriteLine($"Error: File not found at {expectedFile}");
-        }
-
-        File.WriteAllLines(filePath, new[] { email, password, fortnitePath });
-        Console.WriteLine("Saved!");
-        StartMenu();
-    }
-
-    static void StartFortnite()
-    {
-        string filePath = Path.Combine(AppDataPath, "blackfn_inf.txt");
-        string backendDll = Path.Combine(AppDataPath, "Backend.dll");
-        string memoryDll = Path.Combine(AppDataPath, "memory.dll");
-        if (!File.Exists(filePath))
-        {
-            Console.WriteLine("Settings not found! Please configure first.");
-            StartMenu();
-            return;
-        }
-
-        var lines = File.ReadAllLines(filePath);
-        string email = lines[0];
-        string password = lines[1];
-        string fortnitePath = lines[2];
-
-        string exePath = Path.Combine(fortnitePath, "FortniteGame", "Binaries", "Win64", "FortniteClient-Win64-Shipping.exe");
-        if (!File.Exists(exePath))
-        {
-            Console.WriteLine($"Error: Fortnite executable not found at {exePath}");
-            StartMenu();
-            return;
-        }
-
-        try
-        {
-            ProcessStartInfo psi = new ProcessStartInfo(exePath)
-            {
-                Arguments = $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -skippatchcheck -nobe -fromfl=eac -AUTH_TYPE=epic -AUTH_LOGIN={email} -AUTH_PASSWORD={password} -fltoken=3db3ba5dcbd2e16703f3978d -caldera=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYmU5ZGE1YzJmYmVhNDQwN2IyZjQwZWJhYWQ4NTlhZDQiLCJnZW5lcmF0ZWQiOjE2Mzg3MTcyNzgsImNhbGRlcmFHdWlkIjoiMzgxMGI4NjMtMmE2NS00NDU3LTliNTgtNGRhYjNiNDgyYTg2IiwiYWNQcm92aWRlciI6IkVhc3lBbnRpQ2hlYXQiLCJub3RlcyI6IiIsImZhbGxiYWNrIjpmYWxzZX0.VAWQB67RTxhiWOxx7DBjnzDnXyyEnX7OljJm-j2d88G_WgwQ9wrE6lwMEHZHjBd1ISJdUO1UVUqkfLdU5nofBQ",
-                UseShellExecute = true
-            };
-            Process process = Process.Start(psi);
-            FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_BE.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "r");
-            FakeAC.Start(fortnitePath, "FortniteClient-Win64-Shipping_EAC.exe");
-            FakeAC.Start(fortnitePath, "FortniteLauncher.exe", $"-epicapp=Fortnite -epicenv=Prod -epiclocale=en-us -epicportal -noeac -fromfl=be -fltoken=h1cdhchd10150221h130eB56 -skippatchcheck", "dsf");
-            Console.WriteLine("Fortnite is starting...");
-            Injector.Inject(process.Id, (backendDll));
-            Thread.Sleep(30000);
-            Injector.Inject(process.Id, (memoryDll));
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error while Starting Fortnite: {e.Message}");
-        }
-        StartMenu();
     }
 }
