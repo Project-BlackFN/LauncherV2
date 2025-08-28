@@ -23,7 +23,7 @@ namespace BlackFNLauncher
         {
             var files = new (string name, string url)[]
             {
-                ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Sinum.dll"),
+                ("Backend.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/Cobalt.dll"),
                 ("memory.dll", "https://raw.githubusercontent.com/Project-BlackFN/upload/refs/heads/main/memory.dll")
             };
 
