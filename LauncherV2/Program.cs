@@ -139,7 +139,7 @@ namespace BlackFNLauncher
 
                 Injector.Inject(process.Id, backendDll);
                 WaitForFortniteWindow();
-                Thread.Sleep(10000);
+                Thread.Sleep(25000);
                 Injector.Inject(process.Id, memoryDll);
             }
             catch (Exception e)
